@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<body>
+<h1>Chat</h1>
+<input id="name" type="text" placeholder="Enter your name"></input>
+<div id="chat"></div>
+<input id="msg" type="text" placeholder="Send your message">
+<style>
+input { border: 1px solid green; }
+</style>
+<script>
+
+  const NEW_MESSAGE = 'NEW_MESSAGE';
+  const USER_JOINED = 'USER_JOINED';
+  const CHAR_RETURN = 13;
+
+  let userName;
+
+  const socket = new WebSocket('ws://127.0.0.1:8000/chat');
+  const name = document.getElementById('name');
+  const chat = document.getElementById('chat');
+  const msg = document.getElementById('msg');
+  msg.focus();
+
+  const getUserName = () => document.getElementById('name').value;
+
+  const writeLine = (text) => {
+    const line = document.createElement('div');
+    line.innerHTML = `<p>${text}</p>`;
+    chat.appendChild(line);
+  };
+
+  const congratNewUser = () => {
+    name.setAttribute('hidden', true);
+
+    writeLine(`Your name in the chat: ${userName}`);
+  }
+
+  socket.addEventListener('open', () => {
+    writeLine('Status: connected');
+  });
+
+  socket.addEventListener('close', () => {
+    writeLine('Status: closed');
+  });
+
+  socket.addEventListener('message', ({ data }) => {
+      const parsedData = JSON.parse(data);
+      if (parsedData.type === USER_JOINED) {
+        writeLine(`${parsedData.value} joined the chat`);
+      }
+
+      if (parsedData.type === NEW_MESSAGE) {
+        writeLine(`${parsedData.author}: ${parsedData.value}`);
+      }
+  });
+
+  msg.addEventListener('keydown', (event) => {
+    if (event.keyCode === CHAR_RETURN) {
+      const message = msg.value;
+      msg.value = '';
+      writeLine(`You: ${message}`);
+      socket.send(JSON.stringify({type: NEW_MESSAGE, value: message, author: userName }));
+    }
+  });
+
+  name.addEventListener('keydown', (event) => {
+    userName = getUserName();
+
+    if (event.keyCode === CHAR_RETURN) {
+      congratNewUser();
+      socket.send(JSON.stringify({type: USER_JOINED, value: userName}));
+    }
+  });
+
+</script>
+</body>
+</html>
+

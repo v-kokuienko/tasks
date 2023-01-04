@@ -1,0 +1,1 @@
+export type SortByValues = "audienceScore" | "profitability" | "year";

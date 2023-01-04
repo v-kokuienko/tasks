@@ -1,0 +1,395 @@
+{
+	"components": {
+		"examples": {},
+		"headers": {},
+		"parameters": {},
+		"requestBodies": {},
+		"responses": {},
+		"schemas": {
+			"AccessType": {
+				"type": "string",
+				"enum": [
+					"premium",
+					"free"
+				]
+			},
+			"Film": {
+				"properties": {
+					"title": {
+						"type": "string"
+					},
+					"genre": {
+						"type": "string"
+					},
+					"leadStudio": {
+						"type": "string"
+					},
+					"audienceScore": {
+						"type": "number",
+						"format": "double"
+					},
+					"profitability": {
+						"type": "number",
+						"format": "double"
+					},
+					"rottenTomatoes": {
+						"type": "number",
+						"format": "double"
+					},
+					"worldwideGross": {
+						"type": "string"
+					},
+					"year": {
+						"type": "number",
+						"format": "double"
+					},
+					"id": {
+						"type": "number",
+						"format": "double"
+					},
+					"accessType": {
+						"$ref": "#/components/schemas/AccessType"
+					}
+				},
+				"required": [
+					"title",
+					"genre",
+					"leadStudio",
+					"audienceScore",
+					"profitability",
+					"rottenTomatoes",
+					"worldwideGross",
+					"year",
+					"id",
+					"accessType"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"SortByValues": {
+				"type": "string",
+				"enum": [
+					"audienceScore",
+					"profitability",
+					"year"
+				]
+			},
+			"OrderType": {
+				"type": "string",
+				"enum": [
+					"desc",
+					"asc"
+				]
+			},
+			"FilmsGoupedByGenre": {
+				"properties": {},
+				"type": "object",
+				"additionalProperties": {
+					"items": {
+						"$ref": "#/components/schemas/Film"
+					},
+					"type": "array"
+				}
+			},
+			"FindByFilterRequest": {
+				"properties": {
+					"filters": {
+						"properties": {
+							"year": {
+								"type": "number",
+								"format": "double"
+							},
+							"genre": {
+								"type": "string"
+							},
+							"title": {
+								"type": "string"
+							}
+						},
+						"type": "object"
+					},
+					"sortBy": {
+						"$ref": "#/components/schemas/SortByValues"
+					},
+					"orderType": {
+						"$ref": "#/components/schemas/OrderType"
+					}
+				},
+				"required": [
+					"filters"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"User": {
+				"properties": {
+					"id": {
+						"type": "number",
+						"format": "double"
+					},
+					"name": {
+						"type": "string"
+					},
+					"email": {
+						"type": "string"
+					},
+					"password": {
+						"type": "string"
+					},
+					"accessType": {
+						"$ref": "#/components/schemas/AccessType"
+					},
+					"tokens": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"id",
+					"name",
+					"email",
+					"password",
+					"accessType",
+					"tokens"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UserCreateRequest": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"email": {
+						"type": "string"
+					},
+					"password": {
+						"type": "string"
+					},
+					"accessType": {
+						"$ref": "#/components/schemas/AccessType"
+					}
+				},
+				"required": [
+					"email",
+					"password",
+					"accessType"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Token": {
+				"properties": {
+					"token": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"token"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UserLoginRequest": {
+				"properties": {
+					"email": {
+						"type": "string"
+					},
+					"password": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"email",
+					"password"
+				],
+				"type": "object",
+				"additionalProperties": false
+			}
+		},
+		"securitySchemes": {}
+	},
+	"info": {
+		"title": "films-app",
+		"version": "1.0.0",
+		"license": {
+			"name": "ISC"
+		},
+		"contact": {}
+	},
+	"openapi": "3.0.0",
+	"paths": {
+		"/films": {
+			"get": {
+				"operationId": "GetAllFilms",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/Film"
+									},
+									"type": "array"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"auth0": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "sortBy",
+						"required": false,
+						"schema": {
+							"$ref": "#/components/schemas/SortByValues"
+						}
+					},
+					{
+						"in": "query",
+						"name": "orderType",
+						"required": false,
+						"schema": {
+							"$ref": "#/components/schemas/OrderType"
+						}
+					}
+				]
+			}
+		},
+		"/films/find": {
+			"post": {
+				"operationId": "GetUser",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"anyOf": [
+										{
+											"items": {
+												"$ref": "#/components/schemas/Film"
+											},
+											"type": "array"
+										},
+										{
+											"$ref": "#/components/schemas/FilmsGoupedByGenre"
+										}
+									]
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"auth0": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/FindByFilterRequest"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/user/create": {
+			"post": {
+				"operationId": "RegisterUser",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/User"
+								}
+							}
+						}
+					}
+				},
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UserCreateRequest"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/user/login": {
+			"post": {
+				"operationId": "LoginUser",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Token"
+								}
+							}
+						}
+					}
+				},
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UserLoginRequest"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/user/logout": {
+			"post": {
+				"operationId": "LogoutUser",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": []
+			}
+		}
+	},
+	"servers": [
+		{
+			"url": "/"
+		}
+	]
+}
