@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html style="height: 100%;">
+<body>
+<h2 id="header"></h2>
+<div id="chatContainer"></div>
+<input id="name" type="text" placeholder="Enter your name"></input>
+<div id="sendMessage"></div>
+<style>
+body { height: 100%;
+    background-color: aliceblue;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+p {
+  margin: 10px;
+}
+
+#chat { background: lightsteelblue;
+    margin: 2%;
+    padding: 1px;
+    width: fit-content;
+    border-radius: 12px; }
+#name { border-radius: 2rem;
+    margin: 2%;
+    border-color: salmon;
+    border-width: 5px;
+    width: 30%;
+    font-size: 16px;
+   }
+#msg { border-radius: 2rem;
+    margin: 2%;
+    border-color: cadetblue;
+    border-width: 5px;
+    width: 30%;
+    font-size: 16px;
+   }
+#header { color: steelblue;
+    text-align: center;
+   }
+
+</style>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+
+  const NEW_MESSAGE = 'NEW_MESSAGE';
+  const USER_JOINED = 'USER_JOINED';
+  const USER_LEFT = 'USER_LEFT';
+  const CHAR_RETURN = 13;
+
+  let userName;
+
+  const currentChat = window.location.pathname.match(/chat\/(.*)/)[1];
+
+  console.log(`connecting to ${currentChat}`);
+
+  const socket = io(`/${currentChat}`);
+
+  const header = document.getElementById('header');
+  const line = document.createElement('div');
+  line.innerHTML = `<p>${currentChat.toUpperCase()}</p>`;
+  header.appendChild(line);
+
+  const name = document.getElementById('name');
+  const chatContainer = document.getElementById('chatContainer');
+  let sendMessage = document.getElementById('sendMessage');
+  let msg;
+
+  const getUserName = () => document.getElementById('name').value;
+
+  const writeLine = (text) => {
+    const line = document.createElement('div');
+    line.setAttribute('id', 'chat');
+    line.innerHTML = `<p>${text}</p>`;
+    chatContainer.appendChild(line);
+  };
+
+  const enableChat = () => {
+    const line = document.createElement('div');
+    line.innerHTML = `<input id="msg" type="text" placeholder="Send your message">`;
+    sendMessage.appendChild(line);
+
+    msg = document.getElementById('msg');
+    msg.focus();
+
+    msg.addEventListener('keydown', (event) => {
+    if (event.keyCode === CHAR_RETURN) {
+      const message = msg.value;
+      msg.value = '';
+      writeLine(`You: ${message}`);
+      socket.emit('message', {type: NEW_MESSAGE, value: message, author: userName });
+    }
+  });
+  };
+
+  const congratNewUser = () => {
+    name.setAttribute('hidden', true);
+
+    writeLine(`Your name in the chat: ${userName}`);
+    enableChat();
+  }
+
+  socket.on('connect', () => {
+    writeLine('Status: connected');
+  });
+
+  socket.on('disconnecting', () => {
+    socket.emit('message', {type: USER_LEFT, value: userName});
+  });
+
+  socket.on('message', (data) => {
+    console.log('message data', data)
+      if (data.type === USER_JOINED) {
+        writeLine(`${data.value} joined the chat`);
+      }
+
+      if (data.type === USER_LEFT) {
+        writeLine(`${data.value} left the chat`);
+      }
+
+      if (data.type === NEW_MESSAGE) {
+        writeLine(`${data.author}: ${data.value}`);
+      }
+  });
+
+  name.addEventListener('keydown', (event) => {
+    userName = getUserName();
+
+    if (event.keyCode === CHAR_RETURN) {
+      congratNewUser();
+      socket.emit('message', {type: USER_JOINED, value: userName});
+    }
+  });
+
+</script>
+</body>
+</html>
